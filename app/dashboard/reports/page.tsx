@@ -31,7 +31,7 @@ const CardIcon = ({ type }: { type: string }) => {
   return <CreditCard className="w-4 h-4 text-gray-400" />;
 };
 
-export default function ReportsPage() {
+function ReportsPageContent() {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const activeTab = tab === "monthly-statement" ? "Monthly Statement" : "Transaction Report";
@@ -774,5 +774,13 @@ export default function ReportsPage() {
         <MonthlyStatement />
       )}
     </div>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><Loader2 className="w-6 h-6 text-blue-600 animate-spin" /></div>}>
+      <ReportsPageContent />
+    </Suspense>
   );
 }
