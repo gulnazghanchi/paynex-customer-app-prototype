@@ -125,17 +125,6 @@ export default function DashboardLayout({
           {/* Bottom navigation group with divider */}
           <div className="pt-4 border-t border-gray-100 dark:border-gray-800 px-3 space-y-1">
             <Link
-              href="/dashboard/help"
-              className={`flex items-center gap-3 px-4 py-2.5 font-medium text-[14.5px] rounded-xl transition-all group ${pathname === "/dashboard/help"
-                ? "bg-[#0066FF] text-white dark:bg-[#0066FF] dark:text-white font-semibold shadow-sm"
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-                }`}
-            >
-              <HelpCircle className={`w-5 h-5 ${pathname === "/dashboard/help" ? "text-white" : "opacity-80"}`} />
-              Help Center
-            </Link>
-
-            <Link
               href="/dashboard/settings"
               className={`flex items-center gap-3 px-4 py-2.5 font-medium text-[14.5px] rounded-xl transition-all group ${pathname === "/dashboard/settings"
                 ? "bg-[#0066FF] text-white dark:bg-[#0066FF] dark:text-white font-semibold shadow-sm"
@@ -177,21 +166,21 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4 text-[14px]">
+          <div className="flex items-center gap-3 text-[14px]">
             {/* Service/Company Selector */}
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 text-[13px] shadow-sm">
-              <UserCircle2 className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-800">Chargnex</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/70 hover:bg-blue-100/60 text-[#0066FF] font-semibold transition-all duration-200 text-[13px] border-none cursor-pointer">
+              <UserCircle2 className="w-4.5 h-4.5 text-[#0066FF]" />
+              <span>Chargnex</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#0066FF]" />
             </button>
 
             {/* Language Selector */}
             <div className="relative">
               <button
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 text-[13px] shadow-sm cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F6F6F6] hover:bg-gray-200/50 text-gray-700 font-semibold transition-all duration-200 text-[13px] border-none cursor-pointer"
               >
-                <span className="text-gray-800">{selectedLang}</span>
+                <span>{selectedLang === "English" ? "Eng" : selectedLang === "French" ? "Fre" : "Esp"}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${isLangMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
@@ -234,9 +223,9 @@ export default function DashboardLayout({
             </div>
 
             {/* Notification Bell */}
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-200 shadow-sm">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-[8px] right-[8px] w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            <button className="relative w-10 h-10 rounded-full flex items-center justify-center bg-[#F6F6F6] hover:bg-gray-200/50 text-gray-500 hover:text-gray-700 transition-all duration-200 border-none cursor-pointer">
+              <Bell className="w-4.5 h-4.5 text-gray-600" />
+              <span className="absolute top-[10px] right-[10px] w-2 h-2 bg-[#FF3B30] rounded-full border border-white"></span>
             </button>
 
             {/* User Profile Avatar and Dropdown Menu */}

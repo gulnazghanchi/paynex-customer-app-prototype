@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Calendar, ChevronDown, Check, Download, FileText, Settings, RefreshCcw, CircleDollarSign, Box, XCircle, Activity, Store, Maximize2, TrendingUp, Info,
-  Pencil, Save, RotateCcw, GripVertical
+  Pencil, Save, RotateCcw, GripVertical, SlidersHorizontal, ShoppingBag, Wallet, ArrowUpDown, CreditCard
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -27,9 +27,84 @@ const DEFAULT_WIDGET_ORDER = [
   "channel_dist"
 ];
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#e4e6eb]/95 backdrop-blur-xs text-[#1a1a1a] px-3.5 py-2 rounded-xl text-center text-[12px] font-extrabold shadow-sm border border-gray-200/40 pointer-events-none">
+        <div className="text-[10px] text-gray-400 font-semibold mb-0.5">{payload[0].payload.date}</div>
+        <div>${Number(payload[0].value).toFixed(2)}</div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomCountTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const approved = payload.find((p: any) => p.dataKey === "approved")?.value || 0;
+    const declined = payload.find((p: any) => p.dataKey === "declined")?.value || 0;
+    return (
+      <div className="bg-[#e4e6eb]/95 backdrop-blur-xs text-[#1a1a1a] px-3.5 py-2.5 rounded-xl text-[12px] font-extrabold shadow-sm border border-gray-200/40 pointer-events-none min-w-[120px]">
+        <div className="text-[10px] text-gray-500 font-semibold mb-1.5">{payload[0].payload.name}</div>
+        <div className="flex justify-between gap-4 mb-0.5">
+          <span className="text-gray-500">Approved:</span>
+          <span className="text-[#10B981] font-bold">{approved}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-gray-500">Declined:</span>
+          <span className="text-[#EF4444] font-bold">{declined}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomVolumeTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const purchases = payload.find((p: any) => p.dataKey === "purchases")?.value || 0;
+    const refunds = payload.find((p: any) => p.dataKey === "refunds")?.value || 0;
+    return (
+      <div className="bg-[#e4e6eb]/95 backdrop-blur-xs text-[#1a1a1a] px-3.5 py-2.5 rounded-xl text-[12px] font-extrabold shadow-sm border border-gray-200/40 pointer-events-none min-w-[120px]">
+        <div className="text-[10px] text-gray-500 font-semibold mb-1.5">{payload[0].payload.name}</div>
+        <div className="flex justify-between gap-4 mb-0.5">
+          <span className="text-gray-500">Purchases:</span>
+          <span className="text-[#0066FF] font-bold">${Number(purchases).toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-gray-500">Refunds:</span>
+          <span className="text-[#FF8000] font-bold">${Number(refunds).toFixed(2)}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomChannelTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const approved = payload.find((p: any) => p.dataKey === "approved")?.value || 0;
+    const declined = payload.find((p: any) => p.dataKey === "declined")?.value || 0;
+    return (
+      <div className="bg-[#E4E6EB]/90 backdrop-blur-xs text-[#1a1a1a] px-4 py-3 rounded-2xl text-[13px] font-semibold shadow-md border border-gray-200/20 pointer-events-none min-w-[140px]">
+        <div className="text-[12px] text-gray-500 font-medium mb-2">{payload[0].payload.name}</div>
+        <div className="flex justify-between gap-6 mb-1">
+          <span className="text-gray-700 font-bold">Approved:</span>
+          <span className="text-[#0066FF] font-bold">{approved}</span>
+        </div>
+        <div className="flex justify-between gap-6">
+          <span className="text-gray-700 font-bold">Declined:</span>
+          <span className="text-[#EF4444] font-bold">{declined}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState("This month");
+  const [timeRange, setTimeRange] = useState("All time");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Stores");
@@ -510,13 +585,27 @@ export default function DashboardPage() {
       <div className="w-full px-6 py-6 md:px-8">
 
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 w-full">
-          {/* Left side: Filters (Datepicker & All Stores dropdown) */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 w-full">
+          <div>
+            <h1 className="text-[26px] font-bold text-[#102B4E] leading-tight">Dashboard</h1>
+            <p className="text-[13px] text-gray-500 font-medium">All the statistics at one place</p>
+          </div>
+
+          {/* Right side: Filters & Actions */}
           <div className="flex flex-wrap items-center gap-3 text-[14px]">
+            {/* Refresh Button */}
+            <button
+              onClick={() => setRefreshTrigger(prev => prev + 1)}
+              className="text-[14px] text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1.5 transition-all cursor-pointer bg-transparent"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Refresh
+            </button>
+
             {/* DateRangePicker (This Month) */}
             <DateRangePicker
-              defaultLabel="This month"
-              align="left"
+              defaultLabel="All Time"
+              align="right"
               onApply={(range) => {
                 setTimeRange(range.label);
                 const formatLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -531,17 +620,14 @@ export default function DashboardPage() {
             <div className="relative" ref={projectDropdownRef}>
               <button
                 onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-                className="flex items-center justify-between gap-2.5 bg-white border border-gray-200 px-5 py-2.5 h-[46px] rounded-xl text-[14px] text-gray-700 font-semibold shadow-sm hover:bg-gray-50 transition-colors min-w-[180px] cursor-pointer"
+                className="flex items-center justify-between gap-2.5 bg-white border border-gray-200 px-5 py-2.5 h-[46px] rounded-xl text-[14px] text-gray-700 font-semibold shadow-sm hover:bg-gray-50 transition-colors min-w-[150px] cursor-pointer"
               >
-                <div className="flex items-center gap-2.5 truncate">
-                  <Store className="w-4.5 h-4.5 text-gray-400" />
-                  <span className="truncate max-w-[160px]">{selectedProject}</span>
-                </div>
+                <span className="truncate max-w-[120px]">{selectedProject}</span>
                 <ChevronDown className={`w-4.5 h-4.5 text-gray-400 flex-shrink-0 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isProjectDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[400px]">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[400px]">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Select Store</span>
                   </div>
@@ -566,45 +652,15 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Right side: Customize Layout Controls */}
-          <div className="flex items-center gap-2 text-[14px]">
-            {!isCustomizingLayout && (
-              <button
-                onClick={() => setRefreshTrigger(prev => prev + 1)}
-                className="h-[46px] px-3.5 text-[14px] text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/50 font-semibold flex items-center gap-1.5 rounded-xl transition-all cursor-pointer"
-              >
-                <RefreshCcw className="w-4 h-4" />
-                Refresh
-              </button>
-            )}
-            {!isCustomizingLayout ? (
-              <button
-                onClick={() => setIsCustomizingLayout(true)}
-                className="flex items-center gap-2.5 bg-white border border-gray-200 px-5 py-2.5 h-[46px] rounded-xl text-[14px] text-gray-700 font-semibold shadow-sm hover:bg-gray-50 transition-all cursor-pointer"
-              >
-                <Pencil className="w-4.5 h-4.5 text-gray-500" />
-                <span>Customize layout</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSaveLayout}
-                  className="flex items-center gap-2 bg-[#0066FF] hover:bg-blue-600 text-white px-5 py-2.5 h-[46px] rounded-xl text-[14px] font-bold shadow-sm transition-all cursor-pointer"
-                >
-                  <Save className="w-4.5 h-4.5" />
-                  <span>Save</span>
-                </button>
-                <button
-                  onClick={handleResetLayout}
-                  className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 px-4 py-2.5 h-[46px] text-[14px] font-semibold transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-4.5 h-4.5 text-gray-500" />
-                  <span>Reset layout</span>
-                </button>
-              </div>
-            )}
+            {/* Customize / Config Icon Button */}
+            <button
+              onClick={() => setIsCustomizingLayout(!isCustomizingLayout)}
+              className={`flex items-center justify-center bg-white border border-gray-200 w-[46px] h-[46px] rounded-xl shadow-sm hover:bg-gray-50 transition-all cursor-pointer ${isCustomizingLayout ? 'bg-blue-50 border-blue-300 text-blue-600' : 'text-gray-500'}`}
+              title="Customize Layout"
+            >
+              <SlidersHorizontal className="w-4.5 h-4.5" />
+            </button>
           </div>
         </div>
 
@@ -628,22 +684,22 @@ export default function DashboardPage() {
               const renderCardContent = () => {
                 if (widgetId === "stat_purchases") {
                   return (
-                    <div className="bg-white border border-[#3b82f6] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#3b82f6] flex items-center justify-center text-white">
-                            <CircleDollarSign className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#0066FF] flex items-center justify-center text-white">
+                            <ShoppingBag className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Purchases</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Purchases</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">${summary.purchasesAmount.toFixed(2)}</div>
-                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">${summary.purchasesAmount.toFixed(2)}</div>
+                          <span className="bg-blue-50 text-[#0066FF] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
                             {summary.purchasesCount}
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         Avg purchase: ${summary.purchasesCount ? (summary.purchasesAmount / summary.purchasesCount).toFixed(2) : '0.00'}
                       </div>
                     </div>
@@ -651,22 +707,22 @@ export default function DashboardPage() {
                 }
                 if (widgetId === "stat_refunds") {
                   return (
-                    <div className="bg-gradient-to-r from-red-50/30 to-transparent bg-white border border-[#ef4444] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#ef4444] flex items-center justify-center text-white">
-                            <RefreshCcw className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#f97316] flex items-center justify-center text-white">
+                            <RotateCcw className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Refunds</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Refunds</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">-${summary.refundsAmount.toFixed(2)}</div>
-                          <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">-${summary.refundsAmount.toFixed(2)}</div>
+                          <span className="bg-orange-50 text-[#f97316] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
                             {summary.refundsCount}
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         Avg refund: ${summary.refundsCount ? (summary.refundsAmount / summary.refundsCount).toFixed(2) : '0.00'}
                       </div>
                     </div>
@@ -674,22 +730,22 @@ export default function DashboardPage() {
                 }
                 if (widgetId === "stat_net") {
                   return (
-                    <div className="bg-gradient-to-r from-purple-50/30 to-transparent bg-white border border-[#a855f7] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#a855f7] flex items-center justify-center text-white">
-                            <Box className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#8b5cf6] flex items-center justify-center text-white">
+                            <Wallet className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Total Net</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Total Net</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">${summary.totalAmount.toFixed(2)}</div>
-                          <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">${summary.totalAmount.toFixed(2)}</div>
+                          <span className="bg-purple-50 text-[#8b5cf6] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
                             {summary.totalCount}
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         Net revenue calculated
                       </div>
                     </div>
@@ -697,68 +753,70 @@ export default function DashboardPage() {
                 }
                 if (widgetId === "stat_tx") {
                   return (
-                    <div className="bg-white border border-[#0284c7] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#0284c7] flex items-center justify-center text-white">
-                            <Activity className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#0ea5e9] flex items-center justify-center text-white">
+                            <ArrowUpDown className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Total Tx</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Total Transactions</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">{summary.totCount}</div>
-                          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">{summary.totCount}</div>
+                          <span className="bg-sky-50 text-[#0ea5e9] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
                             100%
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         All processed attempts
                       </div>
                     </div>
                   );
                 }
                 if (widgetId === "stat_approved") {
+                  const rate = summary.totCount ? ((summary.totApproved / summary.totCount) * 100).toFixed(0) + "%" : "0%";
                   return (
-                    <div className="bg-white border border-[#16a34a] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#16a34a] flex items-center justify-center text-white">
-                            <Check className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#10b981] flex items-center justify-center text-white">
+                            <CreditCard className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Approved</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Approved</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">{summary.totApproved}</div>
-                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
-                            {summary.totCount ? ((summary.totApproved / summary.totCount) * 100).toFixed(0) + "%" : "0%"}
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">{summary.totApproved}</div>
+                          <span className="bg-emerald-50 text-[#10b981] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
+                            {rate}
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         Successful transactions
                       </div>
                     </div>
                   );
                 }
                 if (widgetId === "stat_declined") {
+                  const rate = summary.totCount ? ((summary.totDeclined / summary.totCount) * 100).toFixed(0) + "%" : "0%";
                   return (
-                    <div className="bg-gradient-to-r from-amber-50/30 to-transparent bg-white border border-[#d97706] rounded-[12px] p-4 shadow-sm flex flex-col justify-between h-full transition-all hover:shadow-md">
+                    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-md">
                       <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-md bg-[#d97706] flex items-center justify-center text-white">
-                            <XCircle className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-[#ef4444] flex items-center justify-center text-white">
+                            <CreditCard className="w-4 h-4" />
                           </div>
-                          <span className="text-[13px] font-semibold text-gray-800">Declined</span>
+                          <span className="text-[14.5px] font-medium text-gray-500">Declined</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[24px] font-bold text-gray-900 leading-none">{summary.totDeclined}</div>
-                          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
-                            {summary.totCount ? ((summary.totDeclined / summary.totCount) * 100).toFixed(0) + "%" : "0%"}
+                          <div className="text-[28px] font-bold text-[#1a1a1a] leading-none">{summary.totDeclined}</div>
+                          <span className="bg-rose-50 text-[#ef4444] text-[11px] font-extrabold px-2 py-0.5 rounded-[6px]">
+                            {rate}
                           </span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-gray-400 font-medium mt-3">
+                      <div className="text-[13px] text-gray-500 font-medium mt-4">
                         Failed/Declined attempts
                       </div>
                     </div>
@@ -812,18 +870,20 @@ export default function DashboardPage() {
                     {/* Area Chart - Redesigned to match reference image */}
                     <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col p-6 gap-6">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-[14px] font-semibold text-gray-800">Revenue / Transaction Trend</h2>
-                        <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                          <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
-                        </button>
+                        <h2 className="text-[15px] font-medium text-gray-500">Revenue/Transaction Trend</h2>
+                        <div className="flex items-center gap-3">
+                          <button className="w-9 h-9 rounded-xl bg-[#F6F6F6] hover:bg-gray-200/60 flex items-center justify-center transition-colors">
+                            <Maximize2 className="w-4 h-4 text-gray-500" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-[32px] font-bold text-gray-900 leading-none">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[32px] font-bold text-[#1a1a1a] leading-none">
                           ${summary.totalAmount.toFixed(2)}
                         </span>
-                        <span className="bg-emerald-50 text-emerald-700 text-[12px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                          <TrendingUp className="w-3.5 h-3.5" /> Trend
+                        <span className="bg-[#E6F4EA] text-[#137333] text-[12px] font-extrabold px-2 py-0.5 rounded-[6px] flex items-center gap-1">
+                          ↗ 19%
                         </span>
                       </div>
 
@@ -831,40 +891,37 @@ export default function DashboardPage() {
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart
                             data={timelineData}
-                            margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                           >
                             <defs>
                               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25} />
-                                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
+                                <stop offset="5%" stopColor="#0066FF" stopOpacity={0.15} />
+                                <stop offset="95%" stopColor="#0066FF" stopOpacity={0} />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#F1F5F9" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
                             <XAxis
                               dataKey="date"
                               axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                              tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
                               dy={10}
                             />
                             <YAxis
                               axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                              tickFormatter={(val) => val === 0 ? '$0' : `$${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
+                              tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
+                              tickFormatter={(val) => val === 0 ? '0$' : `${val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val}$`}
                             />
-                            <Tooltip
-                              formatter={(value: any) => [`$${Number(value).toFixed(2)}`, "Revenue"]}
-                              contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            />
+                            <Tooltip content={<CustomTooltip />} />
                             <Area
                               type="monotone"
                               dataKey="value"
-                              stroke="#3B82F6"
+                              stroke="#0066FF"
                               strokeWidth={2.5}
                               fillOpacity={1}
                               fill="url(#colorValue)"
-                              activeDot={{ r: 6, fill: "#3B82F6", stroke: "#ffffff", strokeWidth: 2 }}
+                              activeDot={{ r: 6, fill: "#0066FF", stroke: "#ffffff", strokeWidth: 2 }}
                             />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -878,31 +935,30 @@ export default function DashboardPage() {
                         const avg = vals.length > 0 ? net / vals.length : 0;
 
                         return (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-4 text-center gap-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-5 text-center gap-4">
                             <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                              <div className="text-[12px] font-medium text-gray-400 flex items-center gap-1">
-                                Peak revenue
-                                <Info className="w-3 h-3 text-gray-400" />
+                              <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                                <span className="text-[#10B981] font-extrabold text-xs">↗</span> Peak Revenue
                               </div>
-                              <div className="text-[17px] font-bold text-gray-900 mt-1">${peak.toFixed(2)}</div>
+                              <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${peak.toFixed(2)}</div>
                             </div>
                             <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                              <div className="text-[12px] font-medium text-gray-400">
-                                Lowest revenue
+                              <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                                <span className="text-[#EF4444] font-extrabold text-xs">↘</span> Lowest Revenue
                               </div>
-                              <div className="text-[17px] font-bold text-gray-900 mt-1">${lowest.toFixed(2)}</div>
+                              <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${lowest.toFixed(2)}</div>
                             </div>
                             <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                              <div className="text-[12px] font-medium text-gray-400">
-                                Net revenue
+                              <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                                <Wallet className="w-4 h-4 text-[#8B5CF6]" /> Net Revenue
                               </div>
-                              <div className="text-[17px] font-bold text-gray-900 mt-1">${net.toFixed(2)}</div>
+                              <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${net.toFixed(2)}</div>
                             </div>
                             <div className="flex flex-col items-center justify-center">
-                              <div className="text-[12px] font-medium text-gray-400">
-                                Avg. / day
+                              <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                                <Wallet className="w-4 h-4 text-[#0066FF]" /> Avg. Revenue/Day
                               </div>
-                              <div className="text-[17px] font-bold text-gray-900 mt-1">${avg.toFixed(2)}</div>
+                              <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${avg.toFixed(2)}</div>
                             </div>
                           </div>
                         );
@@ -932,87 +988,80 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {/* Transaction Count Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full">
+                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-6 h-full">
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Transaction Count</h2>
-                          <div className="flex items-center gap-2">
+                          <h2 className="text-[15px] font-medium text-gray-500">Transactions Count</h2>
+                          <div className="flex items-center gap-3">
                             <button
                               onClick={() => exportToCSV(
                                 countData,
                                 'transaction_count.csv',
                                 [{ key: 'name', label: 'Card Type' }, { key: 'approved', label: 'Approved' }, { key: 'declined', label: 'Declined' }, { key: 'total', label: 'Total' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-[#0066FF] bg-[#F0F5FF] hover:bg-[#E0EBFF] rounded-xl transition-all cursor-pointer"
                               title="Download CSV"
                             >
                               <Download className="w-3.5 h-3.5" />
                               CSV
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl bg-[#F6F6F6] hover:bg-gray-200/60 flex items-center justify-center transition-colors">
+                              <Maximize2 className="w-4 h-4 text-gray-500" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-baseline gap-3 mb-3">
-                          <span className="text-[28px] font-bold text-gray-900 leading-none">
-                            {summary.totCount}
+                        <div className="flex items-baseline gap-2 mb-3">
+                          <span className="text-[32px] font-bold text-[#1a1a1a] leading-none">
+                            {summary.totCount.toLocaleString()}
                           </span>
-                          <span className="bg-emerald-50 text-emerald-700 text-[12px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5" /> Approval rate {totalApprovalRate}
+                          <span className="bg-[#E6F4EA] text-[#137333] text-[12px] font-extrabold px-2 py-0.5 rounded-[6px] flex items-center gap-1">
+                            ↗ 12%
                           </span>
-                        </div>
-
-                        <div className="flex items-center gap-6 text-[12px] mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#0284c7]"></div>
-                            <span className="text-gray-700 font-medium">Approved</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#ef4444]"></div>
-                            <span className="text-gray-700 font-medium">Declined</span>
-                          </div>
                         </div>
 
                         <div className="h-[250px] w-full pt-2">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                              layout="vertical"
                               data={countData}
-                              margin={{ top: 0, right: 90, left: 20, bottom: 0 }}
-                              barSize={18}
+                              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                              barSize={20}
                             >
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
-                              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={renderCustomYAxisTick} dx={-10} />
-                              <Tooltip cursor={{ fill: 'transparent' }} />
-                              <Bar dataKey="approved" stackId="a" fill="#0284c7" radius={[0, 0, 0, 0]} />
-                              <Bar dataKey="declined" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                              <Bar dataKey="dummyLabelAnchor" stackId="a" fill="transparent">
-                                <LabelList dataKey="total" content={renderCountLabel} position="right" />
-                              </Bar>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }} ticks={[0, 50]} />
+                              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomCountTooltip />} />
+                              <Bar dataKey="approved" stackId="a" fill="#10B981" radius={[0, 0, 0, 0]} />
+                              <Bar dataKey="declined" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-4 text-center gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-5 text-center gap-4">
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Total Tx</div>
-                          <div className="text-[16px] font-bold text-gray-900 mt-0.5">{summary.totCount}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <ArrowUpDown className="w-4 h-4 text-[#0066FF]" /> Total Txn
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">{summary.totCount.toLocaleString()}</div>
                         </div>
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Approved Tx</div>
-                          <div className="text-[16px] font-bold text-[#0284c7] mt-0.5">{summary.totApproved}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <CreditCard className="w-4 h-4 text-[#10B981]" /> Approved Txn
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">{summary.totApproved.toLocaleString()}</div>
                         </div>
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Declined Tx</div>
-                          <div className="text-[16px] font-bold text-[#ef4444] mt-0.5">{summary.totDeclined}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <CreditCard className="w-4 h-4 text-[#EF4444]" /> Declined Txn
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">{summary.totDeclined.toLocaleString()}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Approval Rate</div>
-                          <div className="text-[16px] font-bold text-emerald-600 mt-0.5">{totalApprovalRate}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <TrendingUp className="w-4 h-4 text-[#10B981]" /> Approval Rate
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">{totalApprovalRate}</div>
                         </div>
                       </div>
                     </div>
@@ -1040,31 +1089,40 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {/* Transaction % Distribution Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full font-sans">
+                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-6 h-full font-sans">
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Transaction % Distribution</h2>
-                          <div className="flex items-center gap-2">
+                          <h2 className="text-[15px] font-medium text-gray-500">Transactions Distribution</h2>
+                          <div className="flex items-center gap-3">
                             <button
                               onClick={() => exportToCSV(
                                 countData,
                                 'transaction_distribution.csv',
                                 [{ key: 'name', label: 'Card Type' }, { key: 'total', label: 'Total' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-[#0066FF] bg-[#F0F5FF] hover:bg-[#E0EBFF] rounded-xl transition-all cursor-pointer"
                               title="Download CSV"
                             >
                               <Download className="w-3.5 h-3.5" />
                               CSV
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl bg-[#F6F6F6] hover:bg-gray-200/60 flex items-center justify-center transition-colors">
+                              <Maximize2 className="w-4 h-4 text-gray-500" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-2">
-                          <div className="w-[180px] h-[180px] flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-baseline gap-2 mb-4">
+                          <span className="text-[32px] font-bold text-[#1a1a1a] leading-none">
+                            {summary.totalCount.toLocaleString()}
+                          </span>
+                          <span className="bg-[#E6F4EA] text-[#137333] text-[12px] font-extrabold px-2 py-0.5 rounded-[6px] flex items-center gap-1">
+                            ↗ 12%
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-2">
+                          <div className="relative w-[180px] h-[180px] flex items-center justify-center flex-shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                 <Pie
@@ -1072,64 +1130,67 @@ export default function DashboardPage() {
                                   cx="50%"
                                   cy="50%"
                                   innerRadius={50}
-                                  outerRadius={80}
+                                  outerRadius={82}
                                   dataKey="total"
                                   stroke="none"
                                 >
                                   {countData.map((entry, index) => {
-                                    let color = "#3b82f6";
-                                    if (entry.name === "MasterCard") color = "#ec4899";
-                                    else if (entry.name === "American Express") color = "#06b6d4";
-                                    else if (entry.name === "Discover") color = "#f59e0b";
-                                    else if (entry.name === "JCB") color = "#10b981";
-                                    else if (entry.name === "Interac") color = "#8b5cf6";
+                                    let color = "#0066FF";
+                                    if (entry.name === "Visa") color = "#0066FF";
+                                    else if (entry.name === "MasterCard") color = "#10B981";
+                                    else if (entry.name === "JCB") color = "#8b5cf6";
+                                    else if (entry.name === "American Express") color = "#00c5ff";
+                                    else if (entry.name === "Interac") color = "#ffb900";
                                     return <Cell key={`cell-${index}`} fill={color} />;
                                   })}
                                 </Pie>
-                                <Tooltip formatter={(value) => [value, "Transactions"]} />
                               </PieChart>
                             </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                              <span className="text-[24px] font-bold text-[#1a1a1a]">{summary.totalCount}</span>
+                              <span className="text-[12px] text-gray-400 font-medium">Transactions</span>
+                            </div>
                           </div>
 
                           <div className="w-full flex-1">
-                            <table className="w-full text-left text-[12.5px]">
+                            <table className="w-full text-left text-[13.5px]">
                               <thead>
-                                <tr className="border-b border-gray-200">
-                                  <th className="pb-2 font-semibold text-gray-600">Card Type</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Count</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Share</th>
+                                <tr className="border-b border-gray-100">
+                                  <th className="pb-2.5 font-bold text-gray-800">Card Type</th>
+                                  <th className="pb-2.5 font-bold text-gray-800 text-right">Count</th>
+                                  <th className="pb-2.5 font-bold text-gray-800 text-right">Share</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {countData.map((entry, index) => {
-                                  let color = "#3b82f6";
-                                  if (entry.name === "MasterCard") color = "#ec4899";
-                                  else if (entry.name === "American Express") color = "#06b6d4";
-                                  else if (entry.name === "Discover") color = "#f59e0b";
-                                  else if (entry.name === "JCB") color = "#10b981";
-                                  else if (entry.name === "Interac") color = "#8b5cf6";
+                                  let color = "#0066FF";
+                                  if (entry.name === "Visa") color = "#0066FF";
+                                  else if (entry.name === "MasterCard") color = "#10B981";
+                                  else if (entry.name === "JCB") color = "#8b5cf6";
+                                  else if (entry.name === "American Express") color = "#00c5ff";
+                                  else if (entry.name === "Interac") color = "#ffb900";
 
                                   const percentage = summary.totalCount > 0
                                     ? ((entry.total / summary.totalCount) * 100).toFixed(1) + "%"
                                     : "0.0%";
 
                                   return (
-                                    <tr key={index} className="border-b border-gray-100 last:border-0">
-                                      <td className="py-2 flex items-center gap-2.5">
-                                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></div>
-                                        <span className="text-gray-700 font-medium truncate max-w-[120px]">{entry.name}</span>
+                                    <tr key={index} className="border-b border-gray-100/60 last:border-0">
+                                      <td className="py-2.5 flex items-center gap-2.5">
+                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }}></div>
+                                        <span className="text-gray-500 font-medium">{entry.name}</span>
                                       </td>
-                                      <td className="py-2 text-gray-700 font-semibold text-right">{entry.total}</td>
-                                      <td className="py-2 text-gray-900 font-bold text-right">{percentage}</td>
+                                      <td className="py-2.5 text-gray-700 font-medium text-right">{entry.total}</td>
+                                      <td className="py-2.5 text-gray-700 font-medium text-right">{percentage}</td>
                                     </tr>
                                   );
                                 })}
                               </tbody>
                               <tfoot>
                                 <tr className="border-t border-gray-200">
-                                  <td className="py-2 font-bold text-gray-900">Total</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">{summary.totalCount}</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">100.0%</td>
+                                  <td className="py-3 font-bold text-gray-900">Total</td>
+                                  <td className="py-3 font-bold text-gray-900 text-right">{summary.totalCount}</td>
+                                  <td className="py-3 font-bold text-gray-900 text-right">100%</td>
                                 </tr>
                               </tfoot>
                             </table>
@@ -1161,87 +1222,86 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {/* Transaction Volume Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full">
+                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-6 h-full">
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Transaction Volume</h2>
-                          <div className="flex items-center gap-2">
+                          <h2 className="text-[15px] font-medium text-gray-500">Transaction Volume</h2>
+                          <div className="flex items-center gap-3">
                             <button
                               onClick={() => exportToCSV(
                                 volumeData,
                                 'transaction_volume.csv',
                                 [{ key: 'name', label: 'Card Type' }, { key: 'purchases', label: 'Purchases' }, { key: 'refunds', label: 'Refunds' }, { key: 'total', label: 'Total' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-[#0066FF] bg-[#F0F5FF] hover:bg-[#E0EBFF] rounded-xl transition-all cursor-pointer"
                               title="Download CSV"
                             >
                               <Download className="w-3.5 h-3.5" />
                               CSV
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl bg-[#F6F6F6] hover:bg-gray-200/60 flex items-center justify-center transition-colors">
+                              <Maximize2 className="w-4 h-4 text-gray-500" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-baseline gap-3 mb-3">
-                          <span className="text-[28px] font-bold text-gray-900 leading-none">
-                            ${summary.totalAmount.toFixed(2)}
+                        <div className="flex items-baseline gap-2 mb-3">
+                          <span className="text-[32px] font-bold text-[#1a1a1a] leading-none">
+                            ${summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
-                          <span className="bg-blue-50 text-blue-700 text-[12px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <CircleDollarSign className="w-3.5 h-3.5" /> Total Volume
+                          <span className="bg-[#E6F4EA] text-[#137333] text-[12px] font-extrabold px-2 py-0.5 rounded-[6px] flex items-center gap-1">
+                            ↗ 19%
                           </span>
-                        </div>
-
-                        <div className="flex items-center gap-6 text-[12px] mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#3b82f6]"></div>
-                            <span className="text-gray-700 font-medium">Purchases</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#ef4444]"></div>
-                            <span className="text-gray-700 font-medium">Refunds</span>
-                          </div>
                         </div>
 
                         <div className="h-[250px] w-full pt-2">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                              layout="vertical"
                               data={volumeData}
-                              margin={{ top: 0, right: 90, left: 20, bottom: 0 }}
-                              barSize={18}
+                              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                              barSize={20}
                             >
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11 }} tickFormatter={(val: any) => '$' + val} />
-                              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={renderCustomYAxisTick} dx={-10} />
-                              <Tooltip cursor={{ fill: 'transparent' }} formatter={(val: any) => '$' + Number(val).toFixed(2)} />
-                              <Bar dataKey="purchases" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                              <Bar dataKey="refunds" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                              <Bar dataKey="dummyLabelAnchor" stackId="a" fill="transparent">
-                                <LabelList dataKey="total" content={renderVolumeLabel} position="right" />
-                              </Bar>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }} />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
+                                ticks={[0, 200, 400, 600, 800]}
+                                tickFormatter={(val) => `$${val}`}
+                              />
+                              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomVolumeTooltip />} />
+                              <Bar dataKey="purchases" stackId="a" fill="#0066FF" radius={[0, 0, 0, 0]} />
+                              <Bar dataKey="refunds" stackId="a" fill="#FF8000" radius={[4, 4, 0, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-4 text-center gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-5 text-center gap-4">
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Purchases Vol</div>
-                          <div className="text-[16px] font-bold text-[#3b82f6] mt-0.5">${summary.purchasesAmount.toFixed(2)}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <ShoppingBag className="w-4 h-4 text-[#0066FF]" /> Purchases Vol.
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${summary.purchasesAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
                         </div>
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Refunds Vol</div>
-                          <div className="text-[16px] font-bold text-[#ef4444] mt-0.5">-${summary.refundsAmount.toFixed(2)}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <RotateCcw className="w-4 h-4 text-[#FF8000]" /> Refunds Vol.
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${summary.refundsAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                         </div>
                         <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Net Volume</div>
-                          <div className="text-[16px] font-bold text-purple-600 mt-0.5">${summary.totalAmount.toFixed(2)}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <Wallet className="w-4 h-4 text-[#8B5CF6]" /> Net Volume
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">${summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Total Count</div>
-                          <div className="text-[16px] font-bold text-gray-900 mt-0.5">{summary.totalCount}</div>
+                          <div className="text-[12.5px] font-bold text-gray-400 flex items-center gap-1.5 justify-center">
+                            <ArrowUpDown className="w-4 h-4 text-[#0066FF]" /> Total Count
+                          </div>
+                          <div className="text-[20px] font-extrabold text-[#102B4E] mt-1">{summary.totalCount.toLocaleString()}</div>
                         </div>
                       </div>
                     </div>
@@ -1250,6 +1310,17 @@ export default function DashboardPage() {
               }
 
               if (widgetId === "transaction_volume_dist") {
+                const totalVol = volumeData.reduce((acc, curr) => acc + curr.total, 0);
+                const getCardColor = (name: string) => {
+                  const n = name.toLowerCase();
+                  if (n.includes("visa")) return "#1877F2";
+                  if (n.includes("mastercard") || n.includes("master")) return "#10B981";
+                  if (n.includes("jcb")) return "#7C3AED";
+                  if (n.includes("american express") || n.includes("amex") || n.includes("american")) return "#06B6D4";
+                  if (n.includes("interac")) return "#F59E0B";
+                  return "#94A3B8";
+                };
+
                 return (
                   <div
                     key="transaction_volume_dist"
@@ -1257,7 +1328,7 @@ export default function DashboardPage() {
                     onDragStart={(e) => handleDragStart(e, "transaction_volume_dist")}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "transaction_volume_dist")}
-                    className={`transition-all rounded-[14px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
+                    className={`transition-all rounded-[24px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
                   >
                     {isCustomizingLayout && (
                       <div className="flex items-center justify-between px-3 py-2 bg-blue-100/90 text-blue-800 text-[12px] font-semibold rounded-lg mb-3 border border-blue-200 shadow-sm">
@@ -1269,10 +1340,21 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {/* Transaction Volume % Distribution Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full">
+                    <div className="bg-white border border-gray-200/60 rounded-[24px] shadow-xs flex flex-col justify-between p-8 gap-4 h-full">
                       <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Transaction Volume % Distribution</h2>
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h2 className="text-[16px] font-medium text-gray-500">Transactions Vol. % Distribution</h2>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-[32px] font-bold text-[#0F172A] tracking-tight">
+                                ${totalVol.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[#E6F9F1] text-[#10B981] text-[11px] font-bold">
+                                <span className="text-[10px]">↗</span>
+                                <span>12%</span>
+                              </div>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => exportToCSV(
@@ -1280,20 +1362,20 @@ export default function DashboardPage() {
                                 'volume_distribution.csv',
                                 [{ key: 'name', label: 'Card Type' }, { key: 'total', label: 'Total Volume' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#0066FF] bg-[#ECF2FE] hover:bg-[#DCE7FD] rounded-xl transition-colors cursor-pointer"
                               title="Download CSV"
                             >
-                              <Download className="w-3.5 h-3.5" />
-                              CSV
+                              <span className="text-[13px] font-bold leading-none">↓</span>
+                              <span>CSV</span>
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl border border-gray-200/80 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer">
+                              <Maximize2 className="w-4 h-4 text-gray-400" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-2">
-                          <div className="w-[180px] h-[180px] flex items-center justify-center flex-shrink-0">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-4">
+                          <div className="relative w-[190px] h-[190px] flex items-center justify-center flex-shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                 <Pie
@@ -1301,65 +1383,57 @@ export default function DashboardPage() {
                                   cx="50%"
                                   cy="50%"
                                   innerRadius={50}
-                                  outerRadius={80}
+                                  outerRadius={82}
                                   dataKey="total"
                                   stroke="none"
                                 >
-                                  {volumeData.map((entry, index) => {
-                                    let color = "#3b82f6";
-                                    if (entry.name === "MasterCard") color = "#ec4899";
-                                    else if (entry.name === "American Express") color = "#06b6d4";
-                                    else if (entry.name === "Discover") color = "#f59e0b";
-                                    else if (entry.name === "JCB") color = "#10b981";
-                                    else if (entry.name === "Interac") color = "#8b5cf6";
-                                    return <Cell key={`cell-${index}`} fill={color} />;
-                                  })}
+                                  {volumeData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={getCardColor(entry.name)} />
+                                  ))}
                                 </Pie>
                                 <Tooltip formatter={(value: any) => ['$' + Number(value).toFixed(2), "Volume"]} />
                               </PieChart>
                             </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-2 text-center">
+                              <span className="text-[20px] font-bold text-[#0F172A]">
+                                ${totalVol.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                              </span>
+                              <span className="text-[11px] text-gray-400 font-medium mt-0.5">Total Volume</span>
+                            </div>
                           </div>
 
                           <div className="w-full flex-1">
-                            <table className="w-full text-left text-[12.5px]">
+                            <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="border-b border-gray-200">
-                                  <th className="pb-2 font-semibold text-gray-600">Card Type</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Volume</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Share</th>
+                                <tr className="border-b border-gray-100">
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] w-[45%]">Card Type</th>
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] text-right">Volume</th>
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] text-right">Share</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {volumeData.map((entry, index) => {
-                                  let color = "#3b82f6";
-                                  if (entry.name === "MasterCard") color = "#ec4899";
-                                  else if (entry.name === "American Express") color = "#06b6d4";
-                                  else if (entry.name === "Discover") color = "#f59e0b";
-                                  else if (entry.name === "JCB") color = "#10b981";
-                                  else if (entry.name === "Interac") color = "#8b5cf6";
-
-                                  const totalVol = volumeData.reduce((acc, curr) => acc + curr.total, 0);
                                   const percentage = totalVol > 0
                                     ? ((entry.total / totalVol) * 100).toFixed(1) + "%"
                                     : "0.0%";
-
+                                  const color = getCardColor(entry.name);
                                   return (
-                                    <tr key={index} className="border-b border-gray-100 last:border-0">
-                                      <td className="py-2 flex items-center gap-2.5">
-                                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></div>
-                                        <span className="text-gray-700 font-medium truncate max-w-[120px]">{entry.name}</span>
+                                    <tr key={index} className="border-b border-gray-100/50 last:border-0">
+                                      <td className="py-3 flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
+                                        <span className="text-[#4A5568] text-[13px] font-medium">{entry.name}</span>
                                       </td>
-                                      <td className="py-2 text-gray-700 font-semibold text-right">${Number(entry.total).toFixed(2)}</td>
-                                      <td className="py-2 text-gray-900 font-bold text-right">{percentage}</td>
+                                      <td className="py-3 text-[#4A5568] text-[13px] text-right font-normal">${Number(entry.total).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                                      <td className="py-3 text-[#4A5568] text-[13px] text-right font-normal">{percentage}</td>
                                     </tr>
                                   );
                                 })}
                               </tbody>
                               <tfoot>
                                 <tr className="border-t border-gray-200">
-                                  <td className="py-2 font-bold text-gray-900">Total</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">${volumeData.reduce((acc, curr) => acc + curr.total, 0).toFixed(2)}</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">100.0%</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px]">Total</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px] text-right">${totalVol.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px] text-right">100%</td>
                                 </tr>
                               </tfoot>
                             </table>
@@ -1372,6 +1446,10 @@ export default function DashboardPage() {
               }
 
               if (widgetId === "channel_count") {
+                const totalAttempts = summary.totCount;
+                const approvalRate = totalAttempts > 0 ? ((summary.totApproved / totalAttempts) * 100).toFixed(1) + "%" : "0.0%";
+                const approvalRatePill = totalAttempts > 0 ? ((summary.totApproved / totalAttempts) * 100).toFixed(0) + "%" : "0%";
+
                 return (
                   <div
                     key="channel_count"
@@ -1379,7 +1457,7 @@ export default function DashboardPage() {
                     onDragStart={(e) => handleDragStart(e, "channel_count")}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "channel_count")}
-                    className={`transition-all rounded-[14px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
+                    className={`transition-all rounded-[24px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
                   >
                     {isCustomizingLayout && (
                       <div className="flex items-center justify-between px-3 py-2 bg-blue-100/90 text-blue-800 text-[12px] font-semibold rounded-lg mb-3 border border-blue-200 shadow-sm">
@@ -1391,10 +1469,21 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {/* Channel Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full">
+                    <div className="bg-white border border-gray-200/60 rounded-[24px] shadow-xs flex flex-col justify-between p-8 gap-6 h-full">
                       <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Channel</h2>
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h2 className="text-[16px] font-medium text-gray-500">Channel</h2>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-[32px] font-bold text-[#0F172A] tracking-tight">
+                                {totalAttempts.toLocaleString()}
+                              </span>
+                              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E6F9F1] text-[#10B981] text-[11px] font-bold">
+                                <span className="text-[10px]">↗</span>
+                                <span>Approval rate {approvalRatePill}</span>
+                              </div>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => exportToCSV(
@@ -1402,76 +1491,74 @@ export default function DashboardPage() {
                                 'channel_data.csv',
                                 [{ key: 'name', label: 'Channel' }, { key: 'approved', label: 'Approved' }, { key: 'declined', label: 'Declined' }, { key: 'total', label: 'Total' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#0066FF] bg-[#ECF2FE] hover:bg-[#DCE7FD] rounded-xl transition-colors cursor-pointer"
                               title="Download CSV"
                             >
-                              <Download className="w-3.5 h-3.5" />
-                              CSV
+                              <span className="text-[13px] font-bold leading-none">↓</span>
+                              <span>CSV</span>
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl border border-gray-200/80 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer">
+                              <Maximize2 className="w-4 h-4 text-gray-400" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-baseline gap-3 mb-3">
-                          <span className="text-[28px] font-bold text-gray-900 leading-none">
-                            {summary.totCount}
-                          </span>
-                          <span className="bg-emerald-50 text-emerald-700 text-[12px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5" /> Approval rate {totalApprovalRate}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-6 text-[12px] mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#0284c7]"></div>
-                            <span className="text-gray-700 font-medium">Approved</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-[#ef4444]"></div>
-                            <span className="text-gray-700 font-medium">Declined</span>
-                          </div>
-                        </div>
-
-                        <div className="h-[250px] w-full pt-2">
+                        <div className="h-[250px] w-full pt-4">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                              layout="vertical"
                               data={channelData}
-                              margin={{ top: 0, right: 90, left: 20, bottom: 0 }}
-                              barSize={22}
+                              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                              barSize={32}
                             >
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
-                              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={renderCustomYAxisTick} dx={-10} />
-                              <Tooltip cursor={{ fill: 'transparent' }} />
-                              <Bar dataKey="approved" stackId="a" fill="#0284c7" radius={[0, 0, 0, 0]} />
-                              <Bar dataKey="declined" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                              <Bar dataKey="dummyLabelAnchor" stackId="a" fill="transparent">
-                                <LabelList dataKey="total" content={renderCountLabel} position="right" />
-                              </Bar>
+                              <CartesianGrid strokeDasharray="0 0" vertical={false} stroke="#F1F5F9" />
+                              <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748B', fontSize: 13, fontWeight: 500 }}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748B', fontSize: 13, fontWeight: 500 }}
+                                tickFormatter={(val) => `$${val >= 1000 ? (val / 1000) + 'K' : val}`}
+                              />
+                              <Tooltip content={<CustomChannelTooltip />} cursor={{ fill: 'rgba(0,0,0,0.01)' }} />
+                              <Bar dataKey="approved" stackId="a" fill="#10B981" radius={[8, 8, 8, 8]} />
+                              <Bar dataKey="declined" stackId="a" fill="#EF4444" radius={[8, 8, 0, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-4 text-center gap-2">
-                        <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Total Attempts</div>
-                          <div className="text-[16px] font-bold text-gray-900 mt-0.5">{summary.totCount}</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 pt-6 gap-4">
+                        <div className="border-r border-gray-100/80 last:border-r-0 pl-2">
+                          <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500">
+                            <ArrowUpDown className="w-4 h-4 text-[#0066FF]" />
+                            <span>Total Attempts</span>
+                          </div>
+                          <div className="text-[22px] font-bold text-[#0F172A] mt-2 ml-5.5">{totalAttempts.toLocaleString()}</div>
                         </div>
-                        <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Terminal</div>
-                          <div className="text-[16px] font-bold text-[#0284c7] mt-0.5">{channelData.find((c: any) => c.name === "Terminal")?.total || 0}</div>
+                        <div className="border-r border-gray-100/80 last:border-r-0 pl-2">
+                          <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500">
+                            <Wallet className="w-4 h-4 text-[#10B981]" />
+                            <span>Approved</span>
+                          </div>
+                          <div className="text-[22px] font-bold text-[#0F172A] mt-2 ml-5.5">{summary.totApproved.toLocaleString()}</div>
                         </div>
-                        <div className="border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">E-Commerce</div>
-                          <div className="text-[16px] font-bold text-[#8b5cf6] mt-0.5">{channelData.find((c: any) => c.name === "E-Commerce")?.total || 0}</div>
+                        <div className="border-r border-gray-100/80 last:border-r-0 pl-2">
+                          <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500">
+                            <XCircle className="w-4 h-4 text-[#EF4444]" />
+                            <span>Declined</span>
+                          </div>
+                          <div className="text-[22px] font-bold text-[#0F172A] mt-2 ml-5.5">{summary.totDeclined.toLocaleString()}</div>
                         </div>
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="text-[11px] font-medium text-gray-500">Approval Rate</div>
-                          <div className="text-[16px] font-bold text-emerald-600 mt-0.5">{totalApprovalRate}</div>
+                        <div className="pl-2">
+                          <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500">
+                            <ArrowUpDown className="w-4 h-4 text-[#0066FF]" />
+                            <span>Approval Rate</span>
+                          </div>
+                          <div className="text-[22px] font-bold text-[#0F172A] mt-2 ml-5.5">{approvalRate}</div>
                         </div>
                       </div>
                     </div>
@@ -1480,6 +1567,14 @@ export default function DashboardPage() {
               }
 
               if (widgetId === "channel_dist") {
+                const totalCount = channelData.reduce((acc, curr) => acc + curr.total, 0);
+                const getChannelColor = (name: string) => {
+                  const n = name.toLowerCase();
+                  if (n.includes("terminal")) return "#06B6D4";
+                  if (n.includes("e-commerce") || n.includes("commerce")) return "#7C3AED";
+                  return "#94A3B8";
+                };
+
                 return (
                   <div
                     key="channel_dist"
@@ -1487,22 +1582,33 @@ export default function DashboardPage() {
                     onDragStart={(e) => handleDragStart(e, "channel_dist")}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "channel_dist")}
-                    className={`transition-all rounded-[14px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
+                    className={`transition-all rounded-[24px] w-full xl:w-[calc(50%-12px)] ${isCustomizingLayout ? 'ring-2 ring-blue-400 ring-offset-4 cursor-grab active:cursor-grabbing p-2 bg-blue-50/20 shadow-md' : ''}`}
                   >
                     {isCustomizingLayout && (
                       <div className="flex items-center justify-between px-3 py-2 bg-blue-100/90 text-blue-800 text-[12px] font-semibold rounded-lg mb-3 border border-blue-200 shadow-sm">
                         <span className="flex items-center gap-2">
                           <GripVertical className="w-4 h-4 text-blue-600" />
-                          Channel % Distribution (Drag to reorder)
+                          Channel Distribution (Drag to reorder)
                         </span>
                         <span className="text-[11px] text-blue-600 font-medium">Hold & Drag</span>
                       </div>
                     )}
-                    {/* Channel % Distribution Card */}
-                    <div className="bg-white border border-gray-200 rounded-[14px] shadow-sm flex flex-col justify-between p-6 gap-4 h-full">
+                    {/* Channel Distribution Card */}
+                    <div className="bg-white border border-gray-200/60 rounded-[24px] shadow-xs flex flex-col justify-between p-8 gap-4 h-full">
                       <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-[14px] font-semibold text-gray-800">Channel % Distribution</h2>
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h2 className="text-[16px] font-medium text-gray-500">Channel Distribution</h2>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-[32px] font-bold text-[#0F172A] tracking-tight">
+                                {totalCount.toLocaleString()}
+                              </span>
+                              <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[#E6F9F1] text-[#10B981] text-[11px] font-bold">
+                                <span className="text-[10px]">↗</span>
+                                <span>12%</span>
+                              </div>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => exportToCSV(
@@ -1510,20 +1616,20 @@ export default function DashboardPage() {
                                 'channel_distribution.csv',
                                 [{ key: 'name', label: 'Channel' }, { key: 'total', label: 'Total' }]
                               )}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                              className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#0066FF] bg-[#ECF2FE] hover:bg-[#DCE7FD] rounded-xl transition-colors cursor-pointer"
                               title="Download CSV"
                             >
-                              <Download className="w-3.5 h-3.5" />
-                              CSV
+                              <span className="text-[13px] font-bold leading-none">↓</span>
+                              <span>CSV</span>
                             </button>
-                            <button className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-                              <Maximize2 className="w-3.5 h-3.5 text-gray-500" />
+                            <button className="w-9 h-9 rounded-xl border border-gray-200/80 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer">
+                              <Maximize2 className="w-4 h-4 text-gray-400" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-2">
-                          <div className="w-[180px] h-[180px] flex items-center justify-center flex-shrink-0">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-4">
+                          <div className="relative w-[190px] h-[190px] flex items-center justify-center flex-shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                 <Pie
@@ -1531,59 +1637,55 @@ export default function DashboardPage() {
                                   cx="50%"
                                   cy="50%"
                                   innerRadius={50}
-                                  outerRadius={80}
+                                  outerRadius={82}
                                   dataKey="total"
                                   stroke="none"
                                 >
-                                  {channelData.map((entry, index) => {
-                                    let color = "#0284c7";
-                                    if (entry.name === "Terminal") color = "#0284c7";
-                                    else if (entry.name === "E-Commerce") color = "#8b5cf6";
-                                    return <Cell key={`cell-${index}`} fill={color} />;
-                                  })}
+                                  {channelData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={getChannelColor(entry.name)} />
+                                  ))}
                                 </Pie>
                                 <Tooltip formatter={(value: any) => [value, "Transactions"]} />
                               </PieChart>
                             </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-2 text-center">
+                              <span className="text-[20px] font-bold text-[#0F172A]">{totalCount.toLocaleString()}</span>
+                              <span className="text-[11px] text-gray-400 font-medium mt-0.5">Transactions</span>
+                            </div>
                           </div>
 
                           <div className="w-full flex-1">
-                            <table className="w-full text-left text-[12.5px]">
+                            <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="border-b border-gray-200">
-                                  <th className="pb-2 font-semibold text-gray-600">Channel</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Count</th>
-                                  <th className="pb-2 font-semibold text-gray-600 text-right">Share</th>
+                                <tr className="border-b border-gray-100">
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] w-[45%]">Channel</th>
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] text-right">Count</th>
+                                  <th className="pb-3 font-semibold text-[#0F172A] text-[13px] text-right">Share</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {channelData.map((entry, index) => {
-                                  let color = "#0284c7";
-                                  if (entry.name === "Terminal") color = "#0284c7";
-                                  else if (entry.name === "E-Commerce") color = "#8b5cf6";
-
-                                  const totalCount = channelData.reduce((acc, curr) => acc + curr.total, 0);
                                   const percentage = totalCount > 0
                                     ? ((entry.total / totalCount) * 100).toFixed(1) + "%"
                                     : "0.0%";
-
+                                  const color = getChannelColor(entry.name);
                                   return (
-                                    <tr key={index} className="border-b border-gray-100 last:border-0">
-                                      <td className="py-2.5 flex items-center gap-2.5">
-                                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></div>
-                                        <span className="text-gray-700 font-medium truncate max-w-[120px]">{entry.name}</span>
+                                    <tr key={index} className="border-b border-gray-100/50 last:border-0">
+                                      <td className="py-3 flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
+                                        <span className="text-[#4A5568] text-[13px] font-medium">{entry.name}</span>
                                       </td>
-                                      <td className="py-2.5 text-gray-700 font-semibold text-right">{entry.total}</td>
-                                      <td className="py-2.5 text-gray-900 font-bold text-right">{percentage}</td>
+                                      <td className="py-3 text-[#4A5568] text-[13px] text-right font-normal">{entry.total.toLocaleString()}</td>
+                                      <td className="py-3 text-[#4A5568] text-[13px] text-right font-normal">{percentage}</td>
                                     </tr>
                                   );
                                 })}
                               </tbody>
                               <tfoot>
                                 <tr className="border-t border-gray-200">
-                                  <td className="py-2 font-bold text-gray-900">Total</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">{channelData.reduce((acc, curr) => acc + curr.total, 0)}</td>
-                                  <td className="py-2 font-bold text-gray-900 text-right">100.0%</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px]">Total</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px] text-right">{totalCount.toLocaleString()}</td>
+                                  <td className="pt-3 font-bold text-[#0F172A] text-[13px] text-right">100%</td>
                                 </tr>
                               </tfoot>
                             </table>

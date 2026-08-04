@@ -413,7 +413,7 @@ export default function TransactionsPage() {
           <table className="w-full text-left border-collapse min-w-[1300px]">
             <thead>
               <tr className="border-b border-gray-200 bg-[#f8fafc]">
-                {["Date & time", "Session ID", "Card", "Card type", "Amount", "Status", "Type", "Channel", "Serial Number", "Receipt"].map((header, i) => (
+                {["Date & time", "Order ID", "Card Number", "Card Type", "Amount", "Status", "Type", "Channel", "Serial Number", "Receipt"].map((header, i) => (
                   <th key={i} className="px-5 py-4 text-[13.5px] font-bold text-gray-700 whitespace-nowrap text-left">
                     <div className="flex items-center gap-1.5 justify-start">
                       {header}
@@ -508,16 +508,16 @@ export default function TransactionsPage() {
               Download
               <ChevronDown className="w-3 h-3 text-[#102B4E]" />
             </button>
-            
+
             {showDownloadMenu && (
               <div className="absolute left-0 bottom-full mb-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1 flex flex-col">
-                <button 
+                <button
                   onClick={() => setShowDownloadMenu(false)}
                   className="px-3 py-2 text-left text-[13px] font-medium text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
                 >
                   Download CSV
                 </button>
-                <button 
+                <button
                   onClick={() => setShowDownloadMenu(false)}
                   className="px-3 py-2 text-left text-[13px] font-medium text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
                 >

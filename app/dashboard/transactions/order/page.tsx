@@ -151,10 +151,15 @@ function OrderDetailsContent() {
                     })}
                   </div>
 
-                  {/* Right Action: Logs */}
-                  <button className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl transition-all shadow-sm flex items-center justify-center">
-                    View Transaction Logs
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3">
+                    <button className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold rounded-xl transition-all shadow-sm flex items-center justify-center cursor-pointer border-none">
+                      Refund
+                    </button>
+                    <button className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl transition-all shadow-sm flex items-center justify-center cursor-pointer">
+                      View Transaction Logs
+                    </button>
+                  </div>
                 </div>
 
                 {/* 6 Grid highlight cards */}
