@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Suspense } from 'react'
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronDown, ChevronRight, MoreHorizontal, Eye, CreditCard, ChevronUp, Loader2, ArrowUp, FileText, Check } from "lucide-react";
 import { MerchantLocationModal } from "./MerchantLocationModal";
@@ -648,122 +649,122 @@ export default function ReportsPage() {
             <div className="w-full mx-auto px-6 space-y-6 pt-12 pb-16">
 
 
-          {/* Data Table */}
-          <div className="bg-white rounded-[12px] border border-gray-200 shadow-sm relative min-h-[400px] overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center backdrop-blur-[1px]">
-                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-              </div>
-            )}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[1300px]">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-white divide-x divide-gray-100">
-                    {["Date & time", "Session ID", "Card type", "Serial Number", "Amount", "Status", "Type"].map((header, i) => (
-                      <th key={i} className="px-5 py-4 text-[16px] font-bold text-gray-900 whitespace-nowrap text-left">
-                        <div className="flex items-center gap-1.5 justify-start">
-                          {header}
-                          <ArrowUp className="w-3 h-3 text-gray-300" />
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {transactions.length > 0 ? (
-                    transactions.map((tx, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors bg-white divide-x divide-gray-100">
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-gray-900">{formatDateSplit(tx.createdAt).date}</span>
-                            {formatDateSplit(tx.createdAt).time && <span className="text-[12px] font-medium text-gray-500">{formatDateSplit(tx.createdAt).time}</span>}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
-                          <Link href={`/dashboard/transactions/order?ids=${getTxIdsForOrderId(tx.orderId)}`} className="text-blue-600 hover:underline">
-                            {tx.orderId || `ORD-${String(idx + 1).padStart(4, '0')}`}
-                          </Link>
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
-                          <div className="flex items-center gap-2">
-                            <CardIcon type={tx.cardType} />
-                            <span className="capitalize">{tx.cardType ? tx.cardType.toLowerCase() : "N/A"}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
-                          {tx.product?.serialNumber || tx.productId || "-"}
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-900">
-                          ${Number(tx.amount || 0).toFixed(2)}
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center px-3 py-0.5 rounded-full text-[12px] font-medium capitalize border ${["success", "captured", "authorized"].includes((tx.transactionStatus || "success").toLowerCase())
-                            ? "border-green-600 bg-green-50 text-green-700"
-                            : ["failed", "declined", "failure", "unauthorized"].includes((tx.transactionStatus || "").toLowerCase())
-                              ? "border-red-600 bg-red-50 text-red-700"
-                              : "border-yellow-600 bg-yellow-50 text-yellow-700"
-                            }`}>
-                            {["success", "authorized"].includes((tx.transactionStatus || "Success").toLowerCase()) ? "Approved" :
-                              ["failure", "unauthorized", "failed", "declined"].includes((tx.transactionStatus || "Success").toLowerCase()) ? "Declined" :
-                                (tx.transactionStatus || "Success").toLowerCase()}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
-                          {tx.transactionType === "PreAuth" ? "Preauthorization" : tx.transactionType === "Capture" ? "Purchase" : tx.transactionType}
-                        </td>
+              {/* Data Table */}
+              <div className="bg-white rounded-[12px] border border-gray-200 shadow-sm relative min-h-[400px] overflow-hidden">
+                {isLoading && (
+                  <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center backdrop-blur-[1px]">
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                  </div>
+                )}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[1300px]">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-white divide-x divide-gray-100">
+                        {["Date & time", "Session ID", "Card type", "Serial Number", "Amount", "Status", "Type"].map((header, i) => (
+                          <th key={i} className="px-5 py-4 text-[16px] font-bold text-gray-900 whitespace-nowrap text-left">
+                            <div className="flex items-center gap-1.5 justify-start">
+                              {header}
+                              <ArrowUp className="w-3 h-3 text-gray-300" />
+                            </div>
+                          </th>
+                        ))}
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="px-5 py-10 text-center text-gray-500 text-[13px] font-medium">
-                        {isLoading ? "Loading transactions..." : "No transactions found matching your filters."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {transactions.length > 0 ? (
+                        transactions.map((tx, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50/50 transition-colors bg-white divide-x divide-gray-100">
+                            <td className="px-5 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[13px] font-bold text-gray-900">{formatDateSplit(tx.createdAt).date}</span>
+                                {formatDateSplit(tx.createdAt).time && <span className="text-[12px] font-medium text-gray-500">{formatDateSplit(tx.createdAt).time}</span>}
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
+                              <Link href={`/dashboard/transactions/order?ids=${getTxIdsForOrderId(tx.orderId)}`} className="text-blue-600 hover:underline">
+                                {tx.orderId || `ORD-${String(idx + 1).padStart(4, '0')}`}
+                              </Link>
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
+                              <div className="flex items-center gap-2">
+                                <CardIcon type={tx.cardType} />
+                                <span className="capitalize">{tx.cardType ? tx.cardType.toLowerCase() : "N/A"}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
+                              {tx.product?.serialNumber || tx.productId || "-"}
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-900">
+                              ${Number(tx.amount || 0).toFixed(2)}
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap">
+                              <span className={`inline-flex items-center justify-center px-3 py-0.5 rounded-full text-[12px] font-medium capitalize border ${["success", "captured", "authorized"].includes((tx.transactionStatus || "success").toLowerCase())
+                                ? "border-green-600 bg-green-50 text-green-700"
+                                : ["failed", "declined", "failure", "unauthorized"].includes((tx.transactionStatus || "").toLowerCase())
+                                  ? "border-red-600 bg-red-50 text-red-700"
+                                  : "border-yellow-600 bg-yellow-50 text-yellow-700"
+                                }`}>
+                                {["success", "authorized"].includes((tx.transactionStatus || "Success").toLowerCase()) ? "Approved" :
+                                  ["failure", "unauthorized", "failed", "declined"].includes((tx.transactionStatus || "Success").toLowerCase()) ? "Declined" :
+                                    (tx.transactionStatus || "Success").toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 text-[13px] font-normal whitespace-nowrap text-gray-700">
+                              {tx.transactionType === "PreAuth" ? "Preauthorization" : tx.transactionType === "Capture" ? "Purchase" : tx.transactionType}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="px-5 py-10 text-center text-gray-500 text-[13px] font-medium">
+                            {isLoading ? "Loading transactions..." : "No transactions found matching your filters."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-            <p className="text-[13px] font-medium text-gray-500">
-              Showing {transactions.length > 0 ? (currentPage - 1) * TAKE + 1 : 0} to {Math.min(currentPage * TAKE, totalCount)} of {totalCount} results
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1 || isLoading}
-                className="h-10 min-w-[40px] flex items-center justify-center rounded-md border border-gray-300 bg-white text-[#102B4E] hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              {/* Pagination */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+                <p className="text-[13px] font-medium text-gray-500">
+                  Showing {transactions.length > 0 ? (currentPage - 1) * TAKE + 1 : 0} to {Math.min(currentPage * TAKE, totalCount)} of {totalCount} results
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1 || isLoading}
+                    className="h-10 min-w-[40px] flex items-center justify-center rounded-md border border-gray-300 bg-white text-[#102B4E] hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
 
-              {generatePagination().map((page, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => typeof page === 'number' && setCurrentPage(page)}
-                  disabled={page === "..." || isLoading}
-                  className={`h-10 min-w-[40px] px-2 flex items-center justify-center rounded-md text-[14px] font-medium transition-colors shadow-sm ${page === currentPage
-                    ? "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700"
-                    : page === "..."
-                      ? "text-gray-400 cursor-default bg-transparent border-transparent shadow-none"
-                      : "bg-white text-[#102B4E] border border-gray-300 hover:bg-gray-50"
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
+                  {generatePagination().map((page, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                      disabled={page === "..." || isLoading}
+                      className={`h-10 min-w-[40px] px-2 flex items-center justify-center rounded-md text-[14px] font-medium transition-colors shadow-sm ${page === currentPage
+                        ? "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700"
+                        : page === "..."
+                          ? "text-gray-400 cursor-default bg-transparent border-transparent shadow-none"
+                          : "bg-white text-[#102B4E] border border-gray-300 hover:bg-gray-50"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
 
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage >= totalPages || isLoading}
-                className="h-10 min-w-[40px] flex items-center justify-center rounded-md border border-gray-300 bg-white text-[#102B4E] hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage >= totalPages || isLoading}
+                    className="h-10 min-w-[40px] flex items-center justify-center rounded-md border border-gray-300 bg-white text-[#102B4E] hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </>

@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { 
-  Loader2, 
-  ArrowLeft, 
-  Copy, 
+import {
+  Loader2,
+  ArrowLeft,
+  Copy,
   Check,
-  Eye, 
-  Store, 
-  Calendar, 
-  CreditCard, 
-  User, 
-  ArrowUpDown, 
-  DollarSign, 
-  FileText, 
-  HelpCircle, 
-  ArrowUpRight 
+  Eye,
+  Store,
+  Calendar,
+  CreditCard,
+  User,
+  ArrowUpDown,
+  DollarSign,
+  FileText,
+  HelpCircle,
+  ArrowUpRight
 } from "lucide-react";
 
 function OrderDetailsContent() {
@@ -43,7 +43,7 @@ function OrderDetailsContent() {
         setIsLoading(false);
         return;
       }
-      
+
       const token = localStorage.getItem("paynexToken");
       if (!token) {
         setIsLoading(false);
@@ -71,7 +71,7 @@ function OrderDetailsContent() {
             return null;
           })
         );
-        
+
         const validTxns = txns.filter(t => t !== null);
         setTransactions(validTxns);
       } catch (e) {
@@ -80,7 +80,7 @@ function OrderDetailsContent() {
         setIsLoading(false);
       }
     };
-    
+
     fetchDetails();
   }, [ids]);
 
@@ -140,11 +140,10 @@ function OrderDetailsContent() {
                         <button
                           key={idx}
                           onClick={() => setActiveTxIndex(idx)}
-                          className={`px-4 py-2 text-[13px] font-semibold rounded-lg transition-all ${
-                            isActive 
+                          className={`px-4 py-2 text-[13px] font-semibold rounded-lg transition-all ${isActive
                               ? "bg-blue-600 text-white shadow-sm"
                               : "text-gray-600 hover:text-gray-900"
-                          }`}
+                            }`}
                         >
                           {type}
                         </button>
@@ -243,7 +242,7 @@ function OrderDetailsContent() {
 
                 {/* Main Split Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-                  
+
                   {/* Left Column (3 spans): Info Panels */}
                   <div className="lg:col-span-3 space-y-6">
                     {/* Transaction Information Panel */}
@@ -257,7 +256,7 @@ function OrderDetailsContent() {
                           <span className="text-[11.5px] font-medium text-gray-400 uppercase tracking-wider block">Transaction ID</span>
                           <span className="text-[13px] font-semibold text-gray-800 font-mono flex items-center gap-1.5">
                             {activeTx.transactionId}
-                            <button 
+                            <button
                               onClick={() => handleCopy(activeTx.transactionId, "txId")}
                               className="text-gray-400 hover:text-gray-600 p-0.5 rounded transition-colors"
                             >
@@ -283,7 +282,7 @@ function OrderDetailsContent() {
                           <span className="text-[11.5px] font-medium text-gray-400 uppercase tracking-wider block">Dynamic Payment Link ID</span>
                           <span className="text-[13px] font-semibold text-gray-800 font-mono flex items-center gap-1.5">
                             {activeTx.paymentLinkId || "pay_conx8o3d7yabvthw"}
-                            <button 
+                            <button
                               onClick={() => handleCopy(activeTx.paymentLinkId || "pay_conx8o3d7yabvthw", "linkId")}
                               className="text-gray-400 hover:text-gray-600 p-0.5 rounded transition-colors"
                             >
@@ -331,7 +330,7 @@ function OrderDetailsContent() {
                           <span className="text-[11.5px] font-medium text-gray-400 uppercase tracking-wider block">Provider Transaction ID</span>
                           <span className="text-[13px] font-semibold text-gray-800 font-mono flex items-center gap-1.5">
                             {activeTx.providerTnxId || "txn_buxfj8bl3uycqxde"}
-                            <button 
+                            <button
                               onClick={() => handleCopy(activeTx.providerTnxId || "txn_buxfj8bl3uycqxde", "provTxId")}
                               className="text-gray-400 hover:text-gray-600 p-0.5 rounded transition-colors"
                             >
@@ -343,7 +342,7 @@ function OrderDetailsContent() {
                           <span className="text-[11.5px] font-medium text-gray-400 uppercase tracking-wider block">Provider Transaction Number</span>
                           <span className="text-[13px] font-semibold text-gray-800 font-mono flex items-center gap-1.5">
                             {activeTx.providerTnxNumber || "470-0_1542"}
-                            <button 
+                            <button
                               onClick={() => handleCopy(activeTx.providerTnxNumber || "470-0_1542", "provTxNo")}
                               className="text-gray-400 hover:text-gray-600 p-0.5 rounded transition-colors"
                             >
@@ -402,12 +401,12 @@ function OrderDetailsContent() {
                           <div className="w-7 h-7 rounded-full bg-[#F59E0B] opacity-90"></div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-4">
                         <div className="text-[20px] font-bold tracking-[0.2em] font-mono">
                           {activeTx.maskedCardNumber ? activeTx.maskedCardNumber.replace(/\*/g, ' •').replace(/(\d{4})/g, '$1 ') : "5191 •••• •••• 0199"}
                         </div>
-                        
+
                         <div className="flex justify-between items-center text-[11px] text-gray-300">
                           <div>
                             <span className="block text-[8px] uppercase tracking-wider text-gray-400">Cardholder</span>
@@ -432,7 +431,7 @@ function OrderDetailsContent() {
                           <span className="text-[11px] text-gray-400 uppercase tracking-wider block">Invoice Number</span>
                           <span className="text-[13px] font-semibold text-gray-800 font-mono flex items-center gap-1.5">
                             {activeTx.invoiceNumber || "INV-402049"}
-                            <button 
+                            <button
                               onClick={() => handleCopy(activeTx.invoiceNumber || "INV-402049", "invoiceNo")}
                               className="text-gray-400 hover:text-gray-600 p-0.5 rounded transition-colors"
                             >
@@ -442,17 +441,17 @@ function OrderDetailsContent() {
                         </div>
 
                         {activeTx.invoicePdfUrl ? (
-                          <a 
-                            href={activeTx.invoicePdfUrl} 
-                            target="_blank" 
-                            rel="noreferrer" 
+                          <a
+                            href={activeTx.invoicePdfUrl}
+                            target="_blank"
+                            rel="noreferrer"
                             className="w-full h-10 bg-blue-50 hover:bg-blue-100/80 text-blue-600 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 border border-blue-100"
                           >
                             <Eye className="w-4 h-4" />
                             View Invoice
                           </a>
                         ) : (
-                          <button 
+                          <button
                             disabled
                             className="w-full h-10 bg-gray-50 text-gray-400 rounded-xl text-[13px] font-bold cursor-not-allowed opacity-60 flex items-center justify-center gap-2 border border-gray-150"
                           >
@@ -472,8 +471,8 @@ function OrderDetailsContent() {
                       <p className="text-[12px] text-gray-500 leading-relaxed font-medium">
                         If you have any questions, contact our support team.
                       </p>
-                      <a 
-                        href="mailto:support@paynex.world" 
+                      <a
+                        href="mailto:support@paynex.world"
                         className="inline-flex items-center gap-1 text-[12.5px] font-bold text-blue-600 hover:text-blue-800 transition-colors"
                       >
                         Contact Support

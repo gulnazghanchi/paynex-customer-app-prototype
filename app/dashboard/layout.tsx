@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from 'react'
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import { Grid, CircleDollarSign, Store, Box, Settings, LogOut, Moon, Sun, ChevronDown, PanelLeft, Bell, FileText, Search, UserCircle2, Home, HelpCircle, LayoutGrid, Receipt, Check } from "lucide-react";
