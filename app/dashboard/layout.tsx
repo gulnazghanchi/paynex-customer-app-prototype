@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from 'react'
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import { Grid, CircleDollarSign, Store, Box, Settings, LogOut, Moon, Sun, ChevronDown, PanelLeft, Bell, FileText, Search, UserCircle2, Home, HelpCircle, LayoutGrid, Receipt, Check } from "lucide-react";
 
@@ -14,8 +13,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const tab = searchParams.get("tab");
   const { theme, toggleTheme } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
